@@ -245,7 +245,7 @@ abstract class DatabaseEntity extends Templateable
 
     protected function checkTypeConsistency($a, $b)
     {
-        if (count(array_intersect_key($a, $b)) != count($a)) {
+        if ((count(array_intersect_key($a, $b)) != count($a)) || (count($a) != count($b))) {
             throw new DatabaseException('Key mismatch between database and entities, differences: ' . implode(',', array_diff(array_keys($a), array_keys($b))) . ' X ' . implode(',', array_diff(array_keys($b), array_keys($a))));
         }
 
@@ -259,7 +259,7 @@ abstract class DatabaseEntity extends Templateable
             }
 
             if ($type != $b[$key]) {
-                throw new DatabaseException('Type mismatch between database and entities on ' . $key);
+                throw new DatabaseException('Type mismatch between database and entities on ' . $key . ' (' . $type . ' vs ' . $b[$key] . ')');
             }
         }
     }
