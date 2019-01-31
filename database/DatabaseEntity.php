@@ -33,12 +33,12 @@ abstract class DatabaseEntity extends Templateable
         }
         if ($isSet) {
             $type = gettype($this->$var);
-            if (in_array($type, array('array', 'object'))) {
-                throw new DatabaseException('Cannot set on a non-property: ' . $type);
+            if ((is_array($type)) || ((is_object($type) && (!$type instanceof DateTime)))) {
+                throw new DatabaseException('Cannot set on an entity\'s non-property: ' . $type);
             }
 
             $this->$var = $params[0];
-            return;
+            return null;
         }
 
         throw new DatabaseException('Missing method in ' . get_class($this) . ': ' . $method);
@@ -166,6 +166,7 @@ abstract class DatabaseEntity extends Templateable
 
         $tableProperties = array();
         $keyProperties = array();
+        $nonNullProperties = array();
         foreach ($fields as $field) {
             $key = $field['Field'];
             $property = convert_underscore_to_camelcase($key);
@@ -245,8 +246,10 @@ abstract class DatabaseEntity extends Templateable
 
     protected function checkTypeConsistency($a, $b)
     {
+        $entityType = get_class($this);
+
         if ((count(array_intersect_key($a, $b)) != count($a)) || (count($a) != count($b))) {
-            throw new DatabaseException('Key mismatch between database and entities, differences: ' . implode(',', array_diff(array_keys($a), array_keys($b))) . ' X ' . implode(',', array_diff(array_keys($b), array_keys($a))));
+            throw new DatabaseException('Key mismatch between database and entities on ' . $entityType . ', differences: ' . implode(',', array_diff(array_keys($a), array_keys($b))) . ' X ' . implode(',', array_diff(array_keys($b), array_keys($a))));
         }
 
         foreach ($a as $key => $type) {
@@ -259,7 +262,7 @@ abstract class DatabaseEntity extends Templateable
             }
 
             if ($type != $b[$key]) {
-                throw new DatabaseException('Type mismatch between database and entities on ' . $key . ' (' . $type . ' vs ' . $b[$key] . ')');
+                throw new DatabaseException('Type mismatch between database and entities on ' . $entityType . 'x' . $key . ' (' . $type . ' vs ' . $b[$key] . ')');
             }
         }
     }

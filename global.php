@@ -94,8 +94,6 @@ function output_cpp_error($ex)
 {
     set_throw_errors(false);
 
-    $c = get_class($ex);
-
     if ($ex instanceof CPPException) {
         if ($ex->is404) {
             Logger::error('Error occurred; ' . $ex->getMessage() . "\n" . $ex->getTraceAsString());

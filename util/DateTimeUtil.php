@@ -68,24 +68,36 @@ class DateTimeUtil
         return $_date;
     }
 
-    public static function addYear($date, $years) // [DateTime date, integer years]
+    public static function addYears($date, $years) // [DateTime date, integer years]
     {
         $_date = clone $date;
-        $_date->add(new DateInterval('P' . $years . 'Y'));
+        if ($years >= 0) {
+            $_date->add(new DateInterval('P' . abs($years) . 'Y'));
+        } else {
+            $_date->sub(new DateInterval('P' . abs($years) . 'Y'));
+        }
         return $_date;
     }
 
     public static function addMonths($date, $months) // [DateTime date, integer months]
     {
         $_date = clone $date;
-        $_date->add(new DateInterval('P' . $months . 'M'));
+        if ($months >= 0) {
+            $_date->add(new DateInterval('P' . abs($months) . 'M'));
+        } else {
+            $_date->sub(new DateInterval('P' . abs($months) . 'M'));
+        }
         return $_date;
     }
 
-    public static function addDay($date, $days) // [DateTime date, integer days]
+    public static function addDays($date, $days) // [DateTime date, integer days]
     {
         $_date = clone $date;
-        $_date->add(new DateInterval('P' . $days . 'D'));
+        if ($days >= 0) {
+            $_date->add(new DateInterval('P' . abs($days) . 'D'));
+        } else {
+            $_date->sub(new DateInterval('P' . abs($days) . 'D'));
+        }
         return $_date;
     }
 

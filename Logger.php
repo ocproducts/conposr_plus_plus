@@ -48,7 +48,7 @@ class Logger
             $typeLabel,
             get_ip_address(),
             'User #' . get_member(),
-            get_member_email_address(get_member()),
+            get_member_email_address(),
         );
         $logLine = implode(' - ', $logPrefixParts) . ': ' . $msg . "\n";
         fwrite($this->logFile, $logLine);
