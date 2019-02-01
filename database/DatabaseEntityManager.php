@@ -98,7 +98,7 @@ class DatabaseEntityManager
             $db = $GLOBALS['SITE_DB'];
         }
         $table = convert_camelcase_to_underscore($entityType);
-        $rows = $db->query_parameterised('SELECT * FROM ' . $table . ' ' . $sqlQuery, $parameters, 1);
+        $rows = $db->query_parameterised('SELECT * FROM ' . $table . ' r ' . $sqlQuery, $parameters, 1);
         if (!array_key_exists(0, $rows)) {
             if ($required) {
                 throw new CPPException('Cannot look up null ' . $entityType . ' entity');

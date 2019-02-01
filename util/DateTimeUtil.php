@@ -15,7 +15,7 @@ class DateTimeUtil
 {
     const DAYS = 0; // integer
     const DATE_FORMAT = '%d/%m/%Y';
-    const MYSQL_DATE_FORMAT = '%Y-%m-%d';
+    const MYSQL_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S';
     const HTML5_DATE_FORMAT = '%Y-%m-%d';
 
     public static function formatDateTime($date) // [DateTime date]
@@ -32,11 +32,11 @@ class DateTimeUtil
         if ($date === null) {
             return null;
         }
-        $fDate = strftime(self::MYSQL_DATE_FORMAT, $date->getTimestamp());
+        $fDate = strftime(self::MYSQL_DATETIME_FORMAT, $date->getTimestamp());
         return $fDate;
     }
 
-    public static function formatHTML5DateTime($date) // [DateTime date]
+    public static function formatHTML5Date($date) // [DateTime date]
     {
         if ($date === null) {
             return null;

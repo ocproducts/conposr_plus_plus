@@ -181,13 +181,13 @@ abstract class DatabaseEntity extends Templateable
             } elseif (strpos($_type, 'bit') !== false) {
                 $type = 'integer';
             } elseif (strpos($_type, 'decimal') !== false) {
-                $type = 'float';
+                $type = 'double';
             } elseif (strpos($_type, 'numeric') !== false) {
-                $type = 'float';
+                $type = 'double';
             } elseif (strpos($_type, 'float') !== false) {
-                $type = 'float';
+                $type = 'double';
             } elseif (strpos($_type, 'double') !== false) {
-                $type = 'float';
+                $type = 'double';
             } elseif (strpos($_type, 'char') !== false) {
                 $type = 'string';
             } elseif (strpos($_type, 'text') !== false) {
@@ -262,7 +262,7 @@ abstract class DatabaseEntity extends Templateable
             }
 
             if ($type != $b[$key]) {
-                throw new DatabaseException('Type mismatch between database and entities on ' . $entityType . 'x' . $key . ' (' . $type . ' vs ' . $b[$key] . ')');
+                throw new DatabaseException('Type mismatch between database and entities on ' . $entityType . '.' . $key . ' (' . $type . ' vs ' . $b[$key] . ')');
             }
         }
     }
@@ -272,6 +272,9 @@ abstract class DatabaseEntity extends Templateable
         $type = gettype($variable);
         if ($type == 'NULL') {
             return null;
+        }
+        if ($type == 'boolean') {
+            return 'integer'; // from the database's point of view
         }
         if ($type == 'object') {
             return get_class($variable);
