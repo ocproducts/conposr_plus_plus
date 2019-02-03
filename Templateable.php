@@ -70,7 +70,7 @@ abstract class Templateable
                 }
 
                 if ($value instanceof DateTime) {
-                    $_value = DateTimeUtil::formatDateTime($value);
+                    $_value = DateTimeUtil::formatDate($value);
 
                     $vars[$tplKey . '__HTML5'] =  DateTimeUtil::formatHTML5Date($value);
 

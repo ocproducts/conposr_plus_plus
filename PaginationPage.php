@@ -25,7 +25,7 @@ class PaginationPage extends PHPBeanPage
 
     public function __construct()
     {
-        $this->setPageSize((new ApplicationDataService())->recordsPerPage());
+        $this->setPageSize((new ApplicationDataService())->rowsPerPage());
 
         parent::__construct();
 
@@ -124,10 +124,10 @@ class PaginationPage extends PHPBeanPage
 
     public function calculatePaginationValues($totalRows)
     {
-        $recordsPerPage = $this->getPageSize();
+        $rowsPerPage = $this->getPageSize();
         $currentPage = $this->getCurrentPage();
 
-        list($totalPages, $offset, $fromRow, $toRow) = SortOrderUtil::calculatePaginationValues($totalRows, $recordsPerPage, $currentPage);
+        list($totalPages, $offset, $fromRow, $toRow) = SortOrderUtil::calculatePaginationValues($totalRows, $rowsPerPage, $currentPage);
 
         $this->setTotalRows($totalRows);
         $this->setTotalPages($totalPages);

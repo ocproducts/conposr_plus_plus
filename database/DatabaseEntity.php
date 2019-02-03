@@ -13,7 +13,7 @@
 
 abstract class DatabaseEntity extends Templateable
 {
-    public $isNew = true;
+    public $originalKeyProperties = null;
 
     public function __call($method, $params)
     {
@@ -52,13 +52,18 @@ abstract class DatabaseEntity extends Templateable
 
         $entityType = get_class($this);
 
-        // Is it an insert?
-        $whereMap = array();
-        foreach ($keyProperties as $property) {
-            $whereMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($this->$property);
+        // Work out if it is an insert
+        if ($this->originalKeyProperties === null) {
+            // Might not actually be, if already exists in DB (maybe there's a key conflict)
+            $whereMap = array();
+            foreach ($keyProperties as $property) {
+                $whereMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($this->$property);
+            }
+            $existingEntity = $GLOBALS['SITE_DB']->query_select($table, array('*'), $whereMap, '', 1);
+            $isInsert = (count($existingEntity) == 0);
+        } else {
+            $isInsert = false; // Came from the DB originally
         }
-        $existingEntity = $GLOBALS['SITE_DB']->query_select($table, array('*'), $whereMap, '', 1);
-        $isInsert = (count($existingEntity) == 0);
 
         // Find properties to save
         $propertyMap = array();
@@ -93,14 +98,25 @@ abstract class DatabaseEntity extends Templateable
             }
 
             $result = $GLOBALS['SITE_DB']->query_insert($table, $insertMap, true);
-        } else {
-            $updateMap = array();
+
+            // Next time will be an UPDATE
+            $this->originalKeyProperties = array();
             foreach ($propertyMap as $property => $value) {
-                if (!in_array($property, $keyProperties)) {
-                    $updateMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($value);
+                if (in_array($property, $keyProperties)) {
+                    $this->originalKeyProperties[$property] = $this->$property;
                 }
             }
+        } else {
+            $whereMap = array();
+            foreach ($keyProperties as $property) {
+                $value = ($isInsert || $this->originalKeyProperties === null || !array_key_exists($property, $this->originalKeyProperties)) ? $this->$property : $this->originalKeyProperties[$property];
+                $whereMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($value);
+            }
 
+            $updateMap = array();
+            foreach ($propertyMap as $property => $value) {
+                $updateMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($value);
+            }
             $GLOBALS['SITE_DB']->query_update($table, $updateMap, $whereMap, '', 1);
 
             $result = null;
@@ -116,6 +132,7 @@ abstract class DatabaseEntity extends Templateable
                 }
 
                 $this->$autoIncrementProperty = $result;
+                $this->originalKeyProperties[$autoIncrementProperty] = $result;
             }
 
             $entityId = $this->$autoIncrementProperty;
@@ -135,7 +152,8 @@ abstract class DatabaseEntity extends Templateable
 
         $whereMap = array();
         foreach ($keyProperties as $property) {
-            $whereMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($this->$property);
+            $value = ($this->originalKeyProperties === null || !array_key_exists($property, $this->originalKeyProperties)) ? $this->$property : $this->originalKeyProperties[$property];
+            $whereMap[convert_camelcase_to_underscore($property)] = self::serializeValueLite($value);
         }
         $rowsAffected = $GLOBALS['SITE_DB']->query_delete($table, $whereMap, '', 1);
 
@@ -143,10 +161,11 @@ abstract class DatabaseEntity extends Templateable
             throw new DatabaseException('Tried to delete a record that did not exist');
         }
 
-        if ($autoIncrementProperty !== null) {
+        if (count($keyProperties) == 1) {
             $entityType = get_class($this);
             $instance = DatabaseEntityManager::getInstance();
-            $instance->updateCache($entityType, $this->$autoIncrementProperty, null);
+            $keyField = $keyProperties[0];
+            $instance->updateCache($entityType, $this->$keyField, null);
         }
     }
 
@@ -232,7 +251,7 @@ abstract class DatabaseEntity extends Templateable
 
     public function getEntityProperties()
     {
-        $_propertiesInClass = array_diff(array_keys(get_object_vars($this)), array('isNew'));
+        $_propertiesInClass = array_diff(array_keys(get_object_vars($this)), array('originalKeyProperties'));
 
         $entityProperties = array();
         foreach ($_propertiesInClass as $property) {
@@ -299,21 +318,21 @@ abstract class DatabaseEntity extends Templateable
                         break;
 
                     case 'string':
-                        $val = either_param_string($property, null);
-                        $this->$property = ($val === null) ? null : trim($val);
+                        $value = either_param_string($property, null);
+                        $this->$property = ($value === null) ? null : trim($value);
                         break;
 
                     case 'double':
-                        $val = either_param_string($property, null);
-                        $this->$property = ($val === null) ? null : floatval($val);
+                        $value = either_param_string($property, null);
+                        $this->$property = ($value === null) ? null : floatval($value);
                         break;
 
                     case 'DateTime':
-                        $val = either_param_string($property, null);
-                        if ($val !== null) {
-                            $this->$property = DateTimeUtil::dateTimeFromString($val);
+                        $value = either_param_string($property, null);
+                        if ($value !== null) {
+                            $this->$property = DateTimeUtil::dateTimeFromString($value);
                             if ($this->$property === null) {
-                                throw new DatabaseException('Unrecognised date format for ' . $val);
+                                throw new DatabaseException('Unrecognised date format for ' . $value);
                             }
                         } else {
                             $this->$property = null;
@@ -338,32 +357,36 @@ abstract class DatabaseEntity extends Templateable
 
     public function populateFromRow($row)
     {
-        $this->isNew = false;
-
         $entityProperties = $this->getEntityProperties();
-        list(, $tableProperties, , , ) = $this->getTableProperties();
+        list(, $tableProperties, $keyProperties, , ) = $this->getTableProperties();
         $this->checkTypeConsistency($entityProperties, $tableProperties);
 
+        $this->originalKeyProperties = array();
+
         $rowProperties = array();
-        foreach ($row as $key => $val) {
+        foreach ($row as $key => $value) {
             $property = convert_underscore_to_camelcase($key);
-            $rowProperties[$property] = $this->getPHPDataType($val);
+            $rowProperties[$property] = $this->getPHPDataType($value);
 
             if ((array_key_exists($property, $entityProperties)) && (array_key_exists($property, $tableProperties))) {
                 switch ($tableProperties[$property]) {
                     case 'integer':
                     case 'string':
                     case 'double':
-                        $this->$property = $val;
+                        $this->$property = $value;
                         break;
 
                     case 'DateTime':
-                        $this->$property = DateTimeUtil::dateTimeFromString($val);
+                        $this->$property = DateTimeUtil::dateTimeFromString($value);
                         break;
 
                     default:
                         throw new DatabaseException('Unrecognised property type, ' . $tableProperties[$property]);
                 }
+            }
+
+            if (in_array($property, $keyProperties)) {
+                $this->originalKeyProperties[$property] = $this->$property;
             }
         }
         asort($rowProperties);

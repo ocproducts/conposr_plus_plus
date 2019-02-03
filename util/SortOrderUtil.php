@@ -16,14 +16,14 @@ class SortOrderUtil
     const ASCENDING_ORDER = 'ASC';
     const DESCENDING_ORDER = 'DESC';
 
-    public static function calculatePaginationValues($totalRows, $recordsPerPage, $currentPage) // [int $totalRows, int $recordsPerPage, int $currentPage]
+    public static function calculatePaginationValues($totalRows, $rowsPerPage, $currentPage) // [int $totalRows, int $rowsPerPage, int $currentPage]
     {
-        $totalPages = intval(ceil((float)$totalRows / (float)$recordsPerPage));
+        $totalPages = intval(ceil((float)$totalRows / (float)$rowsPerPage));
 
-        $offset = $recordsPerPage * ($currentPage - 1);
+        $offset = $rowsPerPage * ($currentPage - 1);
         $fromRow = $offset + 1;
 
-        $toRow = $recordsPerPage * $currentPage;
+        $toRow = $rowsPerPage * $currentPage;
 
         return array($totalPages, $offset, $fromRow, $toRow);
     }

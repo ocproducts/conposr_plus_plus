@@ -44,7 +44,7 @@ class Logger
     protected function enterLogLine($typeLabel, $msg)
     {
         $logPrefixParts = array(
-            DateTimeUtil::formatDateTime(new DateTime()),
+            DateTimeUtil::formatDate(new DateTime()),
             $typeLabel,
             get_ip_address(),
             'User #' . get_member(),

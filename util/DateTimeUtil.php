@@ -18,7 +18,7 @@ class DateTimeUtil
     const MYSQL_DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S';
     const HTML5_DATE_FORMAT = '%Y-%m-%d';
 
-    public static function formatDateTime($date) // [DateTime date]
+    public static function formatDate($date) // [DateTime date]
     {
         if ($date === null) {
             return null;
