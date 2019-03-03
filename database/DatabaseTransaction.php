@@ -38,5 +38,7 @@ class DatabaseTransaction
         }
 
         $db->query('ROLLBACK');
+
+        Logger::error('Database transaction was rolled back');
     }
 }
