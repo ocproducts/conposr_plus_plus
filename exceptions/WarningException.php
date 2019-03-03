@@ -11,7 +11,7 @@
  * @package    conposr_plus_plus
  */
 
-class WarningException extends Exception
+class WarningException extends CPPException
 {
     public $isUserFriendlyWarning = true;
 }

@@ -11,6 +11,6 @@
  * @package    conposr_plus_plus
  */
 
-class DatabaseException extends Exception
+class DatabaseException extends CPPException
 {
 }
