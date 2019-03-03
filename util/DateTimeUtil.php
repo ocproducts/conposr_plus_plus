@@ -120,9 +120,4 @@ class DateTimeUtil
         $_date->setTimestamp(mkdir($hours, $minutes));
         return $_date;
     }
-
-    public static function isPastDate($date) // [DateTime date]
-    {
-        return ($date->getTimestamp() <= time());
-    }
 }
