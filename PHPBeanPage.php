@@ -29,6 +29,10 @@ abstract class PHPBeanPage extends Templateable
         foreach (array_keys($request) as $property) {
             if ((property_exists($this, $property)) && ($this->$property !== null) && (!array_key_exists($property, $propertiesToIgnore))) {
                 switch (gettype($this->$property)) {
+                    case 'array':
+                        $this->$property = $request[$property];
+                        break;
+
                     case 'boolean':
                         $val = either_param_integer($property, null);
                         $this->$property = ($val === null) ? null : ($val == 1);
