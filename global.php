@@ -122,6 +122,8 @@ class E404Page extends PHPBeanPage
 
     public function run()
     {
+        http_response_code(404);
+
         $title = 'Page not found';
         $tpl = '404';
         return $this->render($title, $tpl);

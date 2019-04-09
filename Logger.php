@@ -45,6 +45,7 @@ class Logger
     {
         $logPrefixParts = array(
             DateTimeUtil::formatDate(new DateTime()),
+            get_self_url_easy(),
             $typeLabel,
             get_ip_address(),
             'User #' . get_member(),
