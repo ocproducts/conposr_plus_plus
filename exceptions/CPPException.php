@@ -17,4 +17,5 @@ class CPPException extends Exception
 
     public $is404 = false;
     public $isUserFriendlyWarning = false;
+    public $isInformational = false;
 }

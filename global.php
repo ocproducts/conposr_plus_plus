@@ -104,6 +104,10 @@ function output_cpp_error($ex)
             return;
         }
 
+        if ($ex->isInformational) {
+            inform_exit(protect_from_escaping($ex->getMessage()));
+        }
+
         if ($ex->isUserFriendlyWarning) {
             warn_exit(protect_from_escaping($ex->getMessage()));
         }
