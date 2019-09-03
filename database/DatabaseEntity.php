@@ -425,7 +425,60 @@ abstract class DatabaseEntity extends Templateable
         return $row;
     }
 
-    static function serializeValue($value)
+    /**
+     * @param int|string $id
+     * @param bool $required
+     * @param DatabaseConnector|null $db
+     *
+     * @return static|null
+     * @throws CPPException
+     */
+    public static function getById($id, $required = true, $db = null)
+    {
+        return DatabaseEntityManager::getEntity(static::class, $id, $required, $db);
+    }
+
+    /**
+     * @param string $sqlQuery
+     * @param array $parameters
+     * @param bool $required
+     * @param DatabaseConnector|null $db
+     *
+     * @return static|null
+     * @throws CPPException
+     */
+    public static function getViaQuery($sqlQuery, $parameters = array(), $required = true, $db = null)
+    {
+        return DatabaseEntityManager::getEntityViaQuery(static::class, $sqlQuery, $parameters, $required, $db);
+    }
+
+    /**
+     * @param string $sqlQuery
+     * @param array $parameters
+     * @param int|null $max
+     * @param int $start
+     * @param DatabaseConnector|null $db
+     *
+     * @return static[]
+     */
+    public static function getAllViaQuery($sqlQuery = '', $parameters = array(), $max = null, $start = 0, $db = null)
+    {
+        return DatabaseEntityManager::getEntitiesViaQuery(static::class, $sqlQuery, $parameters, $max, $start, $db);
+    }
+
+    /**
+     * @param string $sqlQuery
+     * @param array $parameters
+     * @param DatabaseConnector|null $db
+     *
+     * @return int
+     */
+    public static function countViaQuery($sqlQuery = '', $parameters = array(), $db = null)
+    {
+        return intval(DatabaseEntityManager::countEntitiesViaQuery(static::class, $sqlQuery, $parameters, $db));
+    }
+
+    public static function serializeValue($value)
     {
         $_value = null;
 
@@ -467,7 +520,7 @@ abstract class DatabaseEntity extends Templateable
     }
 
     // For when values will be fed through the database API of Conposr, so need less prep
-    static function serializeValueLite($value)
+    public static function serializeValueLite($value)
     {
         $_value = null;
 
